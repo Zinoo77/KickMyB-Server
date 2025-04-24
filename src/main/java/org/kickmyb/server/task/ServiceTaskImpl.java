@@ -30,6 +30,23 @@ public class ServiceTaskImpl implements ServiceTask {
         return Math.max((int) percentage, 0 );
     }
 
+
+    @Override
+    public void delete(long taskID, MUser user) {
+        // Vérifie si la tâche existe
+        MTask task = repo.findById(taskID).orElseThrow(() -> new IllegalArgumentException("Task not found"));
+
+        // Vérifie si la tâche appartient à l'utilisateur
+        if (user.tasks.stream().noneMatch(t -> t.id == taskID)) {
+            throw new SecurityException("You do not have permission to delete this task");
+        }
+
+        // Supprime la tâche
+        user.tasks.removeIf(t -> t.id == taskID);
+        repo.delete(task);
+        repoUser.save(user);
+    }
+
     @Override
     public TaskDetailResponse detail(Long id, MUser user) {
         //MTask element = user.tasks.stream().filter(elt -> elt.id == id).findFirst().get();
